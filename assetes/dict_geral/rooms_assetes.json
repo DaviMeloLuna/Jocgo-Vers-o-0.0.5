@@ -22,13 +22,21 @@
         "tipo": "normal",
         "inimigo": [[2,2],[19,2],[2,13],[19,13]]
     },
+    "sala5":{
+        "tipo": "normal",
+        "inimigo": [10,7]
+    },
     "sala_inicial":{
         "tipo": "inicial",
         "player": [10, 7]
     },
-    "sala_tesouro":{
+    "sala_tesouro1":{
         "tipo": "tessouro",
         "pedestal": [10, 7]
+    },
+    "sala_tesouro2":{
+        "tipo": "tessouro",
+        "pedestal": [[10, 4], [10,11]]
     },
     "sala_chefe":{
         "tipo": "chefe",

@@ -1,11 +1,11 @@
 import pygame
+import math
 
 from classes.config import *
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, game, x, y, status, homming):
-
+    def __init__(self, game, x, y, status):
         self.game = game
         self._layer = PLAYER_LAYER
         self.group = self.game.all_sprites
@@ -40,7 +40,7 @@ class Player(pygame.sprite.Sprite):
         # Dicionário com as estatísticas do personagem
         self.status = status
 
-        self.has_homing = homming
+        self.has_homming = self.status["homming"]
 
         # Exemplo de quantidade máxima de vidas e de tempo de duração da "partida", pode ser modificado se decidirmos algo novo
         self.hp_max = self.status["hp_max"]
@@ -50,7 +50,7 @@ class Player(pygame.sprite.Sprite):
         self.tempo = 300  # 5 minutos em segundos
 
         # Efeito do Curupira
-        self.velocidade_multiplicador = 1
+        self.velocidade_multiplicador = self.status["multi_spd"]
         self.atordoado = False
         self.tempo_atordoado = 0
 
@@ -75,30 +75,32 @@ class Player(pygame.sprite.Sprite):
     def attack(self):
         keys = pygame.key.get_pressed()
 
+        pierce = self.status["pierce"]
+
         if self.shoot_cooldown == 0 and hasattr(self, 'head'):
             hx = self.head.rect.centerx
             hy = self.head.rect.centery
             shoot = False
 
-            damage = self.status['dano'] * self.status['multi_atq']
+            damage = self.status['dano'] * self.status['multi_dmg']
             speed_proj = self.status['atq_speed'] * 4
             alcance = self.status['alcance']
 
             if keys[pygame.K_UP]:
                 Projectile(self.game, hx, hy, 'face_up',
-                           damage, speed_proj, alcance)
+                           damage, speed_proj, alcance, pierce)
                 shoot = True
             elif keys[pygame.K_DOWN]:
                 Projectile(self.game, hx, hy, 'face_down',
-                           damage, speed_proj, alcance)
+                           damage, speed_proj, alcance, pierce)
                 shoot = True
             elif keys[pygame.K_LEFT]:
                 Projectile(self.game, hx, hy, 'face_left',
-                           damage, speed_proj, alcance)
+                           damage, speed_proj, alcance, pierce)
                 shoot = True
             elif keys[pygame.K_RIGHT]:
                 Projectile(self.game, hx, hy, 'face_right',
-                           damage, speed_proj, alcance)
+                           damage, speed_proj, alcance, pierce)
                 shoot = True
 
             if shoot:
@@ -123,12 +125,12 @@ class Player(pygame.sprite.Sprite):
             self.tempo_atordoado -= 1
             if self.tempo_atordoado <= 0:
                 self.atordoado = False
-                self.velocidade_multiplicador = 1
+                self.status["multi_spd"] = 1
 
         self.moviment()
         self.attack()
 
-        self.coletar_itens()
+        self.coletar_consumiveis()
 
         if self.shoot_cooldown > 0:
             self.shoot_cooldown -= 1
@@ -152,7 +154,8 @@ class Player(pygame.sprite.Sprite):
         if self.atordoado:  # se o jogador já estiver atordoado, não aplica o efeito novamente
             return
         self.atordoado = True  # jogador atordoado
-        self.velocidade_multiplicador = 0.5  # deixa a velocidade do jogador pela metade
+        # deixa a velocidade do jogador pela metade
+        self.status["multi_spd"] = 0.5
         # o jogador fica atordoado por 5 segundos, depois volta a velocidade normal
         self.tempo_atordoado = FPS * 5
 
@@ -240,7 +243,7 @@ class Player(pygame.sprite.Sprite):
                 if self.y_change < 0:
                     self.rect.y = hits_hole[0].rect.bottom
 
-    def coletar_itens(self):
+    def coletar_consumiveis(self):
         hits = pygame.sprite.spritecollide(self, self.game.pickup, True)
 
         for hit in hits:
@@ -285,7 +288,7 @@ class PlayerHead(pygame.sprite.Sprite):
 
 
 class Projectile(pygame.sprite.Sprite):
-    def __init__(self, game, x, y, facing, damage, speed_proj, alcance):
+    def __init__(self, game, x, y, facing, damage, speed_proj, alcance, pierce):
         self.game = game
         self._layer = PROJ_LAYER
         self.group = self.game.all_sprites, self.game.projectiles
@@ -304,25 +307,80 @@ class Projectile(pygame.sprite.Sprite):
         self.rect.centery = y
 
         self.facing = facing
+        self.pierce = pierce
+
         self.damage = damage
         self.speed_proj = speed_proj
 
         self.distance_traveled = 0
         self.max_distance = TILESIZE * alcance
 
+        # Modificação para os itens que causam telecinésia
+        if facing == "face_up":
+            self.dx = 0
+            self.dy = -1
+        elif facing == "face_down":
+            self.dx = 0
+            self.dy = 1
+        elif facing == "face_left":
+            self.dx = -1
+            self.dy = 0
+        elif facing == "face_right":
+            self.dx = 1
+            self.dy = 0
+
+        # Define o alvo UMA ÚNICA VEZ quando o tiro nasce
+        self.alvo = self.buscar_alvo()
+
+    def buscar_alvo(self):
+        alvo_proximo = None
+        menor_dist = 150
+
+        for inimigo in self.game.enemies:
+            dx = inimigo.rect.centerx - self.rect.centerx
+            dy = inimigo.rect.centery - self.rect.centery
+
+            dist = dx*dx + dy*dy
+
+            if dist < menor_dist ** 2:
+                menor_dist = dist
+                alvo_proximo = inimigo
+
+        return alvo_proximo
+
+    def atualizar_homming(self):
+        if self.alvo and self.alvo.alive():
+            # Nomralização de vetor direção
+            dx = self.alvo.rect.centerx - self.rect.centerx
+            dy = self.alvo.rect.centery - self.rect.centery
+
+            dist = math.hypot(dx, dy)
+
+            if dist != 0:
+                dx /= dist
+                dy /= dist
+
+            # Quanto maior a força, mais forte a telecinesia
+            forca = 0.12
+
+            self.dx = self.dx * (1 - forca) + dx * forca
+            self.dy = self.dy * (1 - forca) + dy * forca
+
+            # Virar o projétil de forma suave
+            tam = math.hypot(self.dx, self.dy)
+
+            if tam != 0:
+                self.dx /= tam
+                self.dy /= tam
+
     def update(self):
-        if self.facing == "face_up":
-            self.rect.y -= self.speed_proj
-            self.distance_traveled += self.speed_proj
-        elif self.facing == "face_down":
-            self.rect.y += self.speed_proj
-            self.distance_traveled += self.speed_proj
-        elif self.facing == "face_left":
-            self.rect.x -= self.speed_proj
-            self.distance_traveled += self.speed_proj
-        elif self.facing == "face_right":
-            self.rect.x += self.speed_proj
-            self.distance_traveled += self.speed_proj
+        if self.game.player.has_homming:
+            self.atualizar_homing()
+
+        self.rect.x += self.dx * self.speed_proj
+        self.rect.y += self.dy * self.speed_proj
+
+        self.distance_traveled += self.speed_proj
 
         if self.distance_traveled >= self.max_distance:
             self.kill()
@@ -340,7 +398,7 @@ class Projectile(pygame.sprite.Sprite):
             self, self.game.enemies, False)
 
         for hit in hits_enemy:
-            if self.rect.colliderect(hit.hitbox):
+            if self.rect.colliderect(hit.hitbox) and not self.pierce:
                 hit.take_damage(self.damage)
                 self.kill()
                 break
@@ -409,22 +467,28 @@ class Inventario:
             alteracao = valor * modificador
 
             if atributo == "speed":
-                self.player.speed += alteracao
+                self.player.status["speed"] += alteracao
+
             elif atributo == "damage":
-                self.player.damage += alteracao
-            elif atributo == "multi":
+                self.player.status["damage"] += alteracao
+
+            elif atributo == "multi_dmg":
                 # Multiplicadores de dano costumam ser multiplicativos
-                self.player.damage_multiplier *= valor
+                self.player.status["multi_dmg"] *= valor
+
             elif atributo == "frequency":
                 # Frequência menor = tiros mais rápidos (reduz o cooldown base)
                 self.player.shoot_frequency = max(
                     1, int(self.player.shoot_frequency * valor))
+
             elif atributo == "range":
-                self.player.projectile_range += alteracao
+                self.player.status["range"] += alteracao
+
             elif atributo == "qtd_proj":
-                self.player.qtd_proj += int(alteracao)
-            elif atributo == "health" or atributo == "life":
-                self.player.max_health += int(alteracao)
+                self.player.status["qtd_proj"] += int(alteracao)
+
+            elif atributo == "health":
+                self.player.status["hp_max"] += int(alteracao)
                 # Verifica se cura totalmente (caso do doce_leite / churrasco)
                 if len(efeito) == 4 and efeito[3] == "full":
                     self.player.health = self.player.max_health
@@ -433,7 +497,7 @@ class Inventario:
 
         # Interpretação de efeitos especiais ou cosméticos
         else:
-            if efeito[0] == "homing":
-                self.player.has_homing = True
-            elif efeito[0] == "cor":
-                self.player.projectile_color = efeito[1]
+            if efeito[0] == "homming":
+                self.player.status["homming"] = True
+            elif efeito[0] == "pierce":
+                self.player.status["pierce"] = True

@@ -90,15 +90,18 @@ class Game:
             "hp_max": 30,
             "vida_extra": 0,
             "dano": 3.5,
-            "multi_atq": 1.0,
+            "multi_dmg": 1.0,
             "alcance": 8.5,
             "atq_speed": 1.0,
             "frequencia": 0.0,
             "speed": 1.0,
-            "qtd_proj": 1
+            "multi_spd": 1.0,
+            "qtd_proj": 1,
+            "homming": False,
+            "pierce": False
         }
 
-        self.player = Player(self, 10, 7, self.player_status, False)
+        self.player = Player(self, 10, 7, self.player_status)
 
         # Define quantas salas quer no andar
         self.gerador = MapGenerator(16, self)
