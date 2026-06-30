@@ -17,6 +17,11 @@ from classes.hud import HUD
 class Game:
     def __init__(self):
         pygame.init()
+        self.estado = "MENU"
+        self.resultado = None
+
+        self.cacador_derrotado = False
+
         self.screen = pygame.display.set_mode((WIDTH_TELA, HEIGTH_TELA))
         self.clock = pygame.time.Clock()
         self.runnning = True
@@ -130,6 +135,7 @@ class Game:
                     if self.player.tempo > 0:
                         self.player.tempo -= 1
                     else:
+                        self.resultado = "TEMPO"
                         self.playing = False
 
     def uptade(self):
@@ -140,6 +146,7 @@ class Game:
 
             # Verfica se o jogador morreu, se sim, termina o jogo
             if self.player.hp <= 0:
+                self.resultado = "MORREU"
                 self.playing = False
 
             if not self.sala_atual.sala_limpa:
@@ -148,6 +155,8 @@ class Game:
 
         if self.espera_porta > 0:
             self.espera_porta -= 1
+
+        self.verificar_game_over()
 
     def draw(self):
         self.screen.fill(BLACK)
@@ -175,10 +184,112 @@ class Game:
         pass
 
     def game_over(self):
-        pass
+        fonte = pygame.font.SysFont(None, 72)
+        fonte2 = pygame.font.SysFont(None, 36)
+
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.runnning = False
+                    return
+
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_RETURN:
+                        self.new()
+                        return
+
+                    if event.key == pygame.K_ESCAPE:
+                        self.menu()
+                        return
+
+            self.screen.fill(BLACK)
+
+            if self.resultado == "MORREU":
+                texto = "VOCÊ MORREU"
+
+            elif self.resultado == "TEMPO":
+                texto = "O TEMPO ACABOU"
+
+            elif self.resultado == "FUGIU":
+                texto = "VOCÊ FUGIU DO CAÇADOR"
+
+            elif self.resultado == "VITORIA":
+                texto = "VOCÊ VENCEU"
+
+            else:
+                texto = "FIM DE JOGO"
+
+            t1 = fonte.render(texto, True, (255, 255, 255))
+            t2 = fonte2.render("ENTER - Jogar novamente",
+                               True, (200, 200, 200))
+            t3 = fonte2.render("ESC - Menu", True, (200, 200, 200))
+
+            self.screen.blit(t1, (WIDTH_TELA//2 - t1.get_width()//2, 150))
+            self.screen.blit(t2, (WIDTH_TELA//2 - t2.get_width()//2, 300))
+            self.screen.blit(t3, (WIDTH_TELA//2 - t3.get_width()//2, 350))
+
+            pygame.display.flip()
 
     def menu(self):
-        pass
+        fonte = pygame.font.SysFont(None, 72)
+        fonte2 = pygame.font.SysFont(None, 40)
+
+        while self.runnning:
+
+            for event in pygame.event.get():
+
+                if event.type == pygame.QUIT:
+                    self.runnning = False
+                    return
+
+                if event.type == pygame.KEYDOWN:
+
+                    if event.key == pygame.K_RETURN:
+                        self.new()
+                        return
+
+                    if event.key == pygame.K_ESCAPE:
+                        self.runnning = False
+                        return
+
+            self.screen.fill((30, 30, 30))
+
+            titulo = fonte.render("MEU ROGUELIKE", True, (255, 255, 255))
+            jogar = fonte2.render("ENTER - Jogar", True, (220, 220, 220))
+            sair = fonte2.render("ESC - Sair", True, (220, 220, 220))
+
+            self.screen.blit(
+                titulo, (WIDTH_TELA//2 - titulo.get_width()//2, 150))
+            self.screen.blit(
+                jogar, (WIDTH_TELA//2 - jogar.get_width()//2, 300))
+            self.screen.blit(sair, (WIDTH_TELA//2 - sair.get_width()//2, 350))
+
+            pygame.display.flip()
+
+    def verificar_game_over(self):
+        # Derrota por vida
+        if self.player.hp <= 0:
+            self.resultado = "MORREU"
+            self.playing = False
+            return
+
+        # Derrota por tempo
+        if self.player.tempo <= 0:
+            self.resultado = "TEMPO"
+            self.playing = False
+            return
+
+        # Vitória
+        if self.player.chaves >= self.player.max_chaves and self.cacador_derrotado:
+            self.resultado = "VITORIA"
+            self.playing = False
+            return
+
+        # Derrotou por escapar sem derrotar o caçador
+        if self.player.chaves >= self.player.max_chaves and not self.cacador_derrotado:
+            self.resultado = "FUGIU"
+            self.playing = False
+            return
 
     def check_door_collisions(self):
         # O 'False' significa que a porta NÃO será deletada ao ser tocada

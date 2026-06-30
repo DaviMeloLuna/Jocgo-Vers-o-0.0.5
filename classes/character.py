@@ -54,6 +54,9 @@ class Player(pygame.sprite.Sprite):
         self.atordoado = False
         self.tempo_atordoado = 0
 
+        self.chaves = 0
+        self.max_chaves = 3
+
     def moviment(self):
         # a velocidade do jogador é multiplicada pelo efeito do Curupira, que deixa o jogador mais lento
         speed = self.status['speed'] * 4 * self.velocidade_multiplicador
@@ -495,9 +498,11 @@ class Inventario:
                 else:
                     self.player.health += int(alteracao)
 
-        # Interpretação de efeitos especiais ou cosméticos
+        # Interpretação de efeitos especiais
         else:
             if efeito[0] == "homming":
                 self.player.status["homming"] = True
             elif efeito[0] == "pierce":
                 self.player.status["pierce"] = True
+            elif efeito[0] == "chave":
+                self.player.chaves += 1
