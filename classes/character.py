@@ -56,6 +56,9 @@ class Player(pygame.sprite.Sprite):
 
         self.chaves = 0
 
+        # Quando o jogador achar as 3 partes da chave
+        self.alcapao_contado = False
+
     def moviment(self):
         # a velocidade do jogador é multiplicada pelo efeito do Curupira, que deixa o jogador mais lento
         speed = self.status['speed'] * 4 * self.velocidade_multiplicador

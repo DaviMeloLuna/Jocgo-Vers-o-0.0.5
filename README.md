@@ -9,3 +9,6 @@ Há uma pasta chamada "classes", on estão os programas diferentes de main
 
 30/06/2026
 Implementei o sistema de perceguição de projétil e melhorei o status do personagem
+
+01/07/2026
+Implementei o chefe final, o caçador

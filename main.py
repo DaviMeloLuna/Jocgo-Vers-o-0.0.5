@@ -21,6 +21,7 @@ class Game:
         self.resultado = None
 
         self.cacador_derrotado = False
+        self.em_batalha_final = False
         self.max_chaves = 3
 
         self.screen = pygame.display.set_mode((WIDTH_TELA, HEIGTH_TELA))
@@ -86,6 +87,7 @@ class Game:
         self.pedestal = pygame.sprite.LayeredUpdates()
 
         self.doors = pygame.sprite.LayeredUpdates()
+        self.alcapao = pygame.sprite.LayeredUpdates()
 
         self.projectiles = pygame.sprite.LayeredUpdates()
 
@@ -148,13 +150,22 @@ class Game:
 
         if self.player:
             self.check_door_collisions()
+            self.check_alcapao_collision()
 
             # Verfica se o jogador morreu, se sim, termina o jogo
             if self.player.hp <= 0:
                 self.resultado = "MORREU"
                 self.playing = False
 
-            if not self.sala_atual.sala_limpa:
+            # Lógica da batalha final
+            if getattr(self, 'em_batalha_final', False):
+                # Se não há inimigos, então o caçador morreu
+                if len(self.enemies) == 0:
+                    self.em_batalha_final = False
+                    self.cacador_derrotado = True
+                    self.sala_atual.sala_limpa = True
+
+            elif not self.sala_atual.sala_limpa:
                 if len(self.enemies) == 0:
                     self.sala_atual.sala_limpa = True
 
@@ -285,7 +296,7 @@ class Game:
 
             self.screen.fill((30, 30, 30))
 
-            titulo = fonte.render("MEU ROGUELIKE", True, (255, 255, 255))
+            titulo = fonte.render("Os Guardiões", True, (255, 255, 255))
             jogar = fonte2.render("ENTER - Jogar", True, (220, 220, 220))
             sair = fonte2.render("ESC - Sair", True, (220, 220, 220))
 
@@ -368,6 +379,10 @@ class Game:
             return
 
     def check_door_collisions(self):
+        # Impede do jogador de sair até derrotar o chefe
+        if getattr(self, 'em_batalha_final', False):
+            return
+
         # O 'False' significa que a porta NÃO será deletada ao ser tocada
         hits = pygame.sprite.spritecollide(self.player, self.doors, False)
 
@@ -402,6 +417,21 @@ class Game:
                     self.player.rect.x = 18 * TILESIZE
                     self.player.rect.y = 7 * TILESIZE
                     self.espera_porta = 20
+
+    def check_alcapao_collision(self):
+        hit = pygame.sprite.spritecollide(self.player, self.alcapao, False)
+
+        if hit and not self.cacador_derrotado:
+            self.estado = "FUGIU"
+            self.playing = False
+            self.runnning = False
+            return
+
+        elif hit and self.cacador_derrotado:
+            self.estado = "VITORIA"
+            self.playing = False
+            self.runnning = False
+            return
 
 
 g = Game()

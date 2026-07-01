@@ -6,7 +6,7 @@ import os
 from classes.config import *
 from classes.collectibles import *
 
-from classes.enemies import MulaSemCabeca, Iara, Curupira
+from classes.enemies import MulaSemCabeca, Iara, Curupira, Cacador
 
 diretorio_atual = os.path.dirname(__file__)
 
@@ -171,6 +171,24 @@ class MapGenerator:
                 sala.room_asset_id = random.choice(
                     self.pools_de_salas.get("normal", ["sala1"]))
 
+        # Filtro de sala do chefão
+        cantidata_final = []
+
+        for sala in self.mapa:
+            if sala == sala_inicial or sala in salas_chefe or sala in sala_tesouro:
+                continue
+            qtd_vizinhos = sum(1 for v in sala.vizinho.values() if v is None)
+
+            if qtd_vizinhos == 2 or qtd_vizinhos == 3:
+                cantidata_final.append(sala)
+
+        sala_final = random.sample(
+            cantidata_final, min(1, len(cantidata_final)))
+
+        for sala in sala_final:
+            sala.tipo = 'chefe final'
+            sala.room_asset_id = 'sala_chefe_final'
+
         return self.mapa, sala_inicial
 
     def limpar_sala_atual(self):
@@ -227,6 +245,12 @@ class MapGenerator:
             for pos in dados_sala["parede"]:
                 Wall(self.game, pos[0], pos[1])
 
+        # Carrega o alçapão se a condição das chaves for verdadeira
+        if "alcapao" in dados_sala:
+            for pos in dados_sala["alcapao"]:
+                if self.game.player.chave == self.game.max_chaves:
+                    Alcapao(self.game, pos[0], pos[1])
+
         # Para a sala do tessouro
         if "pedestal" in dados_sala:
             pos = dados_sala["pedestal"]  # Formato [10, 7] do JSON
@@ -271,6 +295,13 @@ class MapGenerator:
                     if not room_node.item_coletado and room_node.item_nome:
                         ItemPassivo(
                             self.game, pos[0], pos[1], room_node.item_nome, room_node.item_dados, room_node)
+
+        # Geração do caçador e inicio da batalha final
+        if room_node.tipo == 'chefe final' and not room_node.sala_limpa:
+            # Verifica os fragmentos da chave
+            if self.game.player.chaves >= self.game.max_chaves:
+                Cacador(self.game, 10, 7)
+                self.game.em_batalha_final = True  # Trava as portas
 
 
 class Minimap:
@@ -378,7 +409,6 @@ class Pedestal(pygame.sprite.Sprite):
 
 class Wall(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
-
         self.game = game
         self._layer = PLAYER_LAYER
         self.groups = (self.game.all_sprites, self.game.walls)
@@ -402,7 +432,6 @@ class Wall(pygame.sprite.Sprite):
 
 class Block(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
-
         self.game = game
         self._layer = PLAYER_LAYER
         self.group = self.game.all_sprites, self.game.blocks
@@ -426,7 +455,6 @@ class Block(pygame.sprite.Sprite):
 
 class Hole(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
-
         self.game = game
         self._layer = PLAYER_LAYER
         self.group = self.game.all_sprites, self.game.holes
@@ -450,7 +478,6 @@ class Hole(pygame.sprite.Sprite):
 
 class Door(pygame.sprite.Sprite):
     def __init__(self, game, x, y, direcao):
-
         self.game = game
         self._layer = DOOR_LAYER
         self.group = self.game.all_sprites, self.game.doors
@@ -486,3 +513,26 @@ class Door(pygame.sprite.Sprite):
 
         elif self.direcao == 'S':
             self.rect.midbottom = (self.x + TILESIZE // 2, self.y + TILESIZE)
+
+
+class Alcapao(pygame.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.game = game
+        self._layer = PLAYER_LAYER
+        self.group = self.game.all_sprites, self.game.alcapao
+
+        pygame.sprite.Sprite.__init__(self, self.group)
+
+        self.x = x * TILESIZE
+        self.y = y * TILESIZE
+
+        self.width = TILESIZE
+        self.height = TILESIZE
+
+        self.image = pygame.Surface([self.width, self.height])
+        # Marrom em RGB
+        self.image.fill((108, 60, 12))
+
+        self.rect = self.image.get_rect()
+        self.rect.x = self.x
+        self.rect.y = self.y

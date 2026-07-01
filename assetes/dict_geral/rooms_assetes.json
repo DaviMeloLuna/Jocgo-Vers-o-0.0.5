@@ -28,12 +28,13 @@
     },
     "sala6":{
         "tipo": "normal",
-        "parede": [[2,2],[19,2],[2,13],[19,13]],
+        "parede": [[2,2],[18,2],[2,12],[18,12]],
         "inimigo": [[10,4], [10,11]]
     },
     "sala_inicial":{
         "tipo": "inicial",
-        "player": [10, 7]
+        "player": [10, 7],
+        "alcapao": [10,7]
     },
     "sala_tesouro1":{
         "tipo": "tesouro",
@@ -41,6 +42,10 @@
     },
     "sala_chefe":{
         "tipo": "chefe",
+        "inimigo": [10, 7]
+    },
+    "sala_chefe_final":{
+        "tipo": "chefe final",
         "inimigo": [10, 7]
     }
 }
