@@ -55,7 +55,6 @@ class Player(pygame.sprite.Sprite):
         self.tempo_atordoado = 0
 
         self.chaves = 0
-        self.max_chaves = 3
 
     def moviment(self):
         # a velocidade do jogador é multiplicada pelo efeito do Curupira, que deixa o jogador mais lento
@@ -264,6 +263,9 @@ class Player(pygame.sprite.Sprite):
                 if "fragmento" in hit.nome_item.lower():
                     self.inventario.adicionar_chave(hit.nome_item)
 
+                if hasattr(hit, 'room_node') and hit.room_node is not None:
+                    hit.room_node.item_coletado = True
+
 
 class PlayerHead(pygame.sprite.Sprite):
     def __init__(self, game, player):
@@ -364,7 +366,7 @@ class Projectile(pygame.sprite.Sprite):
                 dy /= dist
 
             # Quanto maior a força, mais forte a telecinesia
-            forca = 0.12
+            forca = 0.2
 
             self.dx = self.dx * (1 - forca) + dx * forca
             self.dy = self.dy * (1 - forca) + dy * forca
@@ -378,7 +380,7 @@ class Projectile(pygame.sprite.Sprite):
 
     def update(self):
         if self.game.player.has_homming:
-            self.atualizar_homing()
+            self.atualizar_homming()
 
         self.rect.x += self.dx * self.speed_proj
         self.rect.y += self.dy * self.speed_proj

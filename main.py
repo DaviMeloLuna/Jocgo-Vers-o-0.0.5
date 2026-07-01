@@ -21,6 +21,7 @@ class Game:
         self.resultado = None
 
         self.cacador_derrotado = False
+        self.max_chaves = 3
 
         self.screen = pygame.display.set_mode((WIDTH_TELA, HEIGTH_TELA))
         self.clock = pygame.time.Clock()
@@ -138,6 +139,10 @@ class Game:
                         self.resultado = "TEMPO"
                         self.playing = False
 
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    self.pausa_menu()
+
     def uptade(self):
         self.all_sprites.update()
 
@@ -152,6 +157,20 @@ class Game:
             if not self.sala_atual.sala_limpa:
                 if len(self.enemies) == 0:
                     self.sala_atual.sala_limpa = True
+
+                # Bloco da recompensa
+                if self.sala_atual.tipo == 'chefe':
+                    # Sorteia um dos fragmentos
+                    fragmentos = ["Fragmento1", "Fragmento2", "Fragmento3"]
+                    nome_frag = choices(fragmentos, k=1)[0]
+                    dados_frag = self.banco_dados[nome_frag]
+
+                    self.sala_atual.item_nome = nome_frag
+                    self.sala_atual.item_dados = dados_frag
+
+                    Pedestal(self, 10, 7)
+                    ItemPassivo(self, 10, 7, nome_frag,
+                                dados_frag, self.sala_atual)
 
         if self.espera_porta > 0:
             self.espera_porta -= 1
@@ -184,8 +203,15 @@ class Game:
         pass
 
     def game_over(self):
-        fonte = pygame.font.SysFont(None, 72)
-        fonte2 = pygame.font.SysFont(None, 36)
+        if self.resultado == "PAUSA_MENU":
+            return
+
+        try:
+            fonte = pygame.font.Font("PixelifySans-Regular.tff", 72)
+            fonte2 = pygame.font.Font("PixelifySans-Regular.tff", 36)
+        except:
+            fonte = pygame.font.SysFont(None, 72)
+            fonte2 = pygame.font.SysFont(None, 36)
 
         while True:
             for event in pygame.event.get():
@@ -219,7 +245,12 @@ class Game:
             else:
                 texto = "FIM DE JOGO"
 
-            t1 = fonte.render(texto, True, (255, 255, 255))
+            if self.resultado != "VITORIA":
+                t1 = fonte.render(texto, True, (228, 5, 4))
+
+            else:
+                t1 = fonte.render(texto, True, (52, 166, 3))
+
             t2 = fonte2.render("ENTER - Jogar novamente",
                                True, (200, 200, 200))
             t3 = fonte2.render("ESC - Menu", True, (200, 200, 200))
@@ -266,6 +297,51 @@ class Game:
 
             pygame.display.flip()
 
+    def pausa_menu(self):
+        try:
+            fonte = pygame.font.Font("PixelifySans-Regular.tff", 72)
+            fonte2 = pygame.font.Font("PixelifySans-Regular.tff", 36)
+        except:
+            fonte = pygame.font.SysFont(None, 72)
+            fonte2 = pygame.font.SysFont(None, 36)
+
+        em_pausa = True
+
+        while em_pausa:
+            for eventos in pygame.event.get():
+                if eventos.type == pygame.QUIT:
+                    self.playing = False
+                    self.runnning = False
+                    em_pausa = False
+
+                if eventos.type == pygame.KEYDOWN:
+                    if eventos.key == pygame.K_ESCAPE or eventos.key == pygame.K_RETURN:
+                        em_pausa = False
+
+                    elif eventos.key == pygame.K_m:
+                        self.playing = False
+                        self.resultado = "PAUSA_MENU"
+                        em_pausa = False
+
+            # Renderiza a tela de pausa
+            self.screen.fill(BLACK)
+
+            titulo = fonte.render("JOGO PAUSADO", True, (255, 255, 255))
+            retomar = fonte2.render(
+                "ENTER / ESC - Retornar", True, (220, 220, 220))
+            ir_menu = fonte2.render(
+                "M - Menu Principal", True, (220, 220, 220))
+
+            self.screen.blit(
+                titulo, (WIDTH_TELA//2 - titulo.get_width()//2, 150))
+            self.screen.blit(
+                retomar, (WIDTH_TELA//2 - titulo.get_width()//2, 300))
+            self.screen.blit(
+                ir_menu, (WIDTH_TELA//2 - titulo.get_width()//2, 350))
+
+            pygame.display.flip()
+            self.clock.tick(FPS)
+
     def verificar_game_over(self):
         # Derrota por vida
         if self.player.hp <= 0:
@@ -280,13 +356,13 @@ class Game:
             return
 
         # Vitória
-        if self.player.chaves >= self.player.max_chaves and self.cacador_derrotado:
+        if self.player.chaves >= self.max_chaves and self.cacador_derrotado:
             self.resultado = "VITORIA"
             self.playing = False
             return
 
         # Derrotou por escapar sem derrotar o caçador
-        if self.player.chaves >= self.player.max_chaves and not self.cacador_derrotado:
+        if self.player.chaves >= self.max_chaves and not self.cacador_derrotado:
             self.resultado = "FUGIU"
             self.playing = False
             return
@@ -329,13 +405,17 @@ class Game:
 
 
 g = Game()
-g.intro_screen()
-g.new()
 
 while g.runnning:
-    g.main()
-    g.game_over()
     g.menu()
+
+    if not g.runnning:
+        break
+
+    g.main()
+
+    if g.runnning:
+        g.game_over()
 
 pygame.quit()
 sys.exit()

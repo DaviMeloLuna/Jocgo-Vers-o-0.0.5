@@ -31,6 +31,10 @@ class RoomNode:
 
         self.room_asset_id = "sala"
 
+        self.item_nome = None
+        self.item_dados = None
+        self.item_coletado = False
+
 
 class MapGenerator:
     def __init__(self, num_rooms, game):
@@ -218,6 +222,7 @@ class MapGenerator:
             for pos in dados_sala["buraco"]:
                 Block(self.game, pos[0], pos[1])
 
+        # Carregar paredes além dos que limitam
         if "parede" in dados_sala:
             for pos in dados_sala["parede"]:
                 Wall(self.game, pos[0], pos[1])
@@ -226,6 +231,18 @@ class MapGenerator:
         if "pedestal" in dados_sala:
             pos = dados_sala["pedestal"]  # Formato [10, 7] do JSON
             Pedestal(self.game, pos[0], pos[1])
+
+            if room_node.tipo == "tesouro" and not room_node.item_coletado:
+                # Sorteia o item apenas uma vez que entrar
+                if room_node.item_nome is None:
+                    item_sorteado = self.game.sortear_item("tesouro")
+                    if item_sorteado:
+                        room_node.item_nome, room_node.item_dados = item_sorteado[0]
+
+                # Carrega o item na tela
+                if room_node.item_nome:
+                    ItemPassivo(
+                        self.game, pos[0], pos[1], room_node.item_nome, room_node.item_dados, room_node)
 
         # Posicionar o jogador se for a sala inicial:
         if room_node.tipo == "inicial" and "player" in dados_sala:
@@ -247,6 +264,13 @@ class MapGenerator:
 
                 if room_node.tipo == 'chefe':
                     inimigo_intanciado.hp = inimigo_intanciado.hp * 4
+
+                if room_node.tipo == "chefe" and room_node.sala_limpa:
+                    Pedestal(self.game, 10, 7)
+
+                    if not room_node.item_coletado and room_node.item_nome:
+                        ItemPassivo(
+                            self.game, pos[0], pos[1], room_node.item_nome, room_node.item_dados, room_node)
 
 
 class Minimap:

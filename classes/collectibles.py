@@ -80,8 +80,10 @@ class coletavelTempo(pygame.sprite.Sprite):
 
 
 class ItemPassivo(pygame.sprite.Sprite):
-    def __init__(self, game, x, y, nome_item, dados_item):
+    def __init__(self, game, x, y, nome_item, dados_item, room_node=None):
         self.game = game
+        self.room_node = room_node
+
         self._layer = PICKUP_LAYER
         self.group = self.game.all_sprites, self.game.pickup
 

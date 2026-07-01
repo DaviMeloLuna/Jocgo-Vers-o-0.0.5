@@ -20,11 +20,16 @@
     },
     "sala4":{
         "tipo": "normal",
-        "inimigo": [[2,2],[19,2],[2,13],[19,13]]
+        "inimigo": [[2,2],[18,2],[2,13],[18,13]]
     },
     "sala5":{
         "tipo": "normal",
         "inimigo": [10,7]
+    },
+    "sala6":{
+        "tipo": "normal",
+        "parede": [[2,2],[19,2],[2,13],[19,13]],
+        "inimigo": [[10,4], [10,11]]
     },
     "sala_inicial":{
         "tipo": "inicial",
@@ -33,10 +38,6 @@
     "sala_tesouro1":{
         "tipo": "tessouro",
         "pedestal": [10, 7]
-    },
-    "sala_tesouro2":{
-        "tipo": "tessouro",
-        "pedestal": [[10, 4], [10,11]]
     },
     "sala_chefe":{
         "tipo": "chefe",

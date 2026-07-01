@@ -273,3 +273,5 @@ class Curupira(pygame.sprite.Sprite):
 
         elif self.rect.centery > player.rect.centery:
             self.rect.y -= self.speed
+
+        self.hitbox = self.rect.copy()
