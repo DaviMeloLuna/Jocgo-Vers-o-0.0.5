@@ -247,11 +247,12 @@ class MapGenerator:
 
         # Carrega o alçapão se a condição das chaves for verdadeira
         if "alcapao" in dados_sala:
-            for pos in dados_sala["alcapao"]:
-                if self.game.player.chave == self.game.max_chaves:
-                    Alcapao(self.game, pos[0], pos[1])
+            pos = dados_sala["alcapao"]
 
-        # Para a sala do tessouro
+            if self.game.player.chaves == self.game.max_chaves:
+                Alcapao(self.game, pos[0], pos[1])
+
+        # Para a sala do tessouro e chefe depois de vencé-lo
         if "pedestal" in dados_sala:
             pos = dados_sala["pedestal"]  # Formato [10, 7] do JSON
             Pedestal(self.game, pos[0], pos[1])
@@ -265,6 +266,14 @@ class MapGenerator:
 
                 # Carrega o item na tela
                 if room_node.item_nome:
+                    ItemPassivo(
+                        self.game, pos[0], pos[1], room_node.item_nome, room_node.item_dados, room_node)
+
+            # Criação do pedestal assim que o chefe for derrotado
+            if room_node.tipo == 'chefe' and room_node.sala_limpa:
+                Pedestal(self.game, pos[0], pos[1])
+
+                if not room_node.item_coletado and room_node.item_nome:
                     ItemPassivo(
                         self.game, pos[0], pos[1], room_node.item_nome, room_node.item_dados, room_node)
 
@@ -288,13 +297,6 @@ class MapGenerator:
 
                 if room_node.tipo == 'chefe':
                     inimigo_intanciado.hp = inimigo_intanciado.hp * 4
-
-                if room_node.tipo == "chefe" and room_node.sala_limpa:
-                    Pedestal(self.game, 10, 7)
-
-                    if not room_node.item_coletado and room_node.item_nome:
-                        ItemPassivo(
-                            self.game, pos[0], pos[1], room_node.item_nome, room_node.item_dados, room_node)
 
         # Geração do caçador e inicio da batalha final
         if room_node.tipo == 'chefe final' and not room_node.sala_limpa:

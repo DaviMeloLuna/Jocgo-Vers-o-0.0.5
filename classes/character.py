@@ -429,9 +429,6 @@ class Inventario:
         if "effect" in item:
             self._aplicar_efeito(item["effect"])
 
-        print(
-            f"Item coletado: {nome_item} - {item.get('description_item', 'Sem descrição')}")
-
     def adicionar_chave(self, tipo_chave):
         self.coisas.append({
             "nome": f"Chave ({tipo_chave})",
@@ -470,6 +467,7 @@ class Inventario:
 
         # Interpretação de modificadores numéricos: [valor, "Up"/"Down", "atributo"]
         if len(efeito) >= 3 and efeito[1] in ["Up", "Down"]:
+            # Se for "Up" é positivo, se for "Down" é negativo
             valor, operacao, atributo = efeito[0], efeito[1], efeito[2]
             modificador = 1 if operacao == "Up" else -1
             alteracao = valor * modificador
@@ -477,31 +475,32 @@ class Inventario:
             if atributo == "speed":
                 self.player.status["speed"] += alteracao
 
-            elif atributo == "damage":
-                self.player.status["damage"] += alteracao
+            elif atributo == "dano":
+                self.player.status["dano"] += alteracao
 
             elif atributo == "multi_dmg":
                 # Multiplicadores de dano costumam ser multiplicativos
                 self.player.status["multi_dmg"] *= valor
 
-            elif atributo == "frequency":
+            elif atributo == "frequencia":
                 # Frequência menor = tiros mais rápidos (reduz o cooldown base)
-                self.player.shoot_frequency = max(
-                    1, int(self.player.shoot_frequency * valor))
+                self.status['frequencia'] += alteracao
 
-            elif atributo == "range":
-                self.player.status["range"] += alteracao
-
-            elif atributo == "qtd_proj":
-                self.player.status["qtd_proj"] += int(alteracao)
+            elif atributo == "alcance":
+                self.player.status["alcance"] += alteracao
 
             elif atributo == "health":
                 self.player.status["hp_max"] += int(alteracao)
+
                 # Verifica se cura totalmente (caso do doce_leite / churrasco)
                 if len(efeito) == 4 and efeito[3] == "full":
-                    self.player.health = self.player.max_health
+                    self.player.hp = self.player.status["hp_max"]
+
                 else:
-                    self.player.health += int(alteracao)
+                    self.player.hp += int(alteracao)
+                    # Impede do jogador ter mais vida que o máximo
+                    if self.player.hp > self.player.status["hp_max"]:
+                        self.player.hp = self.player.status["hp_max"]
 
         # Interpretação de efeitos especiais
         else:

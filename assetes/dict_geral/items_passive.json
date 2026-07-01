@@ -3,119 +3,119 @@
         "id": "1.100.1",
         "qualidade": 3,
         "pool" : "tesouro",
-        "item": "Frequência Aumentada",
-        "effect": [0.7, "Up", "frequency"]
+        "description_item": "Frequência Aumentada",
+        "effect": [0.7, "Up", "frequencia"]
     },
     "Telecinesia":{
         "id": "1.100.2",
         "qualidade": 3,
         "pool": "tesouro",
-        "item": "Ataque teleguiado",
+        "description_item": "Ataque teleguiado",
         "effect": ["homming"]
     },
     "damage_booster1":{
         "id": "1.100.3",
         "qualidade": 4,
         "pool": "tesouro",
-        "item": "Força Extra",
+        "description_item": "Força Extra",
         "effect": [[1.5, "Up", "multi"], [0.5, "Up", "dano"]]
     },
     "Balas de chumbo": {
         "id": "1.100.4",
         "qualidade": 3,
         "pool": "tesouro",
-        "item": "Deve doer",
+        "description_item": "Deve doer",
         "effect": [1.0, "Up", "dano"]
     },
     "extra_live1": {
         "id": "1.100.5",
         "qualidade": 2,
         "pool": "tesouro",
-        "item": "Extra Life",
+        "description_item": "Extra Life",
         "effect": [1, "Up", "life"]
     },
     "power_up":{
         "id": "1.100.6",
         "qualidade": 4,
         "pool": "tesouro",
-        "item": "Power Up!",
-        "effect": [[2, "Up", "health"], [0.3, "Up", "dano"], [1.5, "Up", "multi_atq"], [2.5, "Up", "range"]]
+        "description_item": "Power Up!",
+        "effect": [[2, "Up", "hp"], [0.3, "Up", "dano"], [1.5, "Up", "multi_atq"], [2.5, "Up", "alcance"]]
     },
     "doce_leite":{
         "id": "1.100.7",
         "qualidade": 2,
         "pool": "tesouro - chefe",
-        "description": "Gosto de infância",
-        "effect": [20, "Up", "health", "full"]
+        "description_item": "Gosto de infância",
+        "effect": [[20, "Up", "hp_max"], [20, "Up", "hp", "full"]]
     },
     "churrasco":{
         "id": "1.100.8",
         "qualidade": 3,
         "pool": "tesouro - chefe",
-        "item": "Espeto ou carne?",
-        "effect": [[20, "Up", "health", "full"], [1.0 , "Up", "dano"]]
+        "description_item": "Espeto ou carne?",
+        "effect": [[20, "Up", "hp", "full"], [1.0 , "Up", "dano"]]
     },
     "Côco":{
         "id": "1.100.9",
         "qualidade": 1,
         "pool": "tesouro - chefe",
-        "item": "A melhor parte é a água",
-        "effect": [20, "Up", "hp_max", "20"]
+        "description_item": "A melhor parte é a água",
+        "effect": [[20, "Up", "hp_max", "20"], [20, "Up", "hp"]]
     },
     "Abacaxi":{
         "id": "1.100.10",
         "qualidade": 1,
         "pool": "tesouro - chefe",
-        "item": "Sem casca e nem a coroa",
-        "effect": [20, "Up", "hp_max", "20"]
+        "description_item": "Sem casca e nem a coroa",
+        "effect": [[20, "Up", "hp_max", "20"], [20, "Up", "hp"]]
     },
     "Mamão":{
         "id": "1.100.11",
         "qualidade": 1,
         "pool": "tesouro - chefe",
-        "item": "Sem semente",
-        "effect": [20, "Up", "hp_max", "20"]
+        "description_item": "Sem semente",
+        "effect": [[20, "Up", "hp_max", "20"], [20, "Up", "hp"]]
     },
     "Banana":{
         "id": "1.100.12",
         "qualidade": 1,
         "pool": "tesouro - chefe",
-        "item": "A mais saudável",
-        "effect": [20, "Up", "hp_max", "20"]
+        "description_item": "A mais saudável",
+        "effect": [[20, "Up", "hp_max", "20"], [20, "Up", "hp"]]
     },
     "Botas":{
         "id": "1.100.13",
         "qualidade": 1,
         "pool": "tesouro",
-        "item": "Para trabalhar",
+        "description_item": "Para trabalhar",
         "effect": [0.3, "Up", "speed"]
     },
     "Macacão":{
         "id": "1.100.14",
         "qualidade": 1,
         "pool": "tesouro",
-        "item": "Para o mato",
+        "description_item": "Para o mato",
         "effect": [0.3, "Up", "speed"]
     },
     "Fragmento1":{
         "id": "1.100.15",
         "qualidade": 0,
         "pool": "chefe",
-        "item": "Mais perto da saida",
+        "description_item": "Mais perto da saida",
         "effect": ["chave"]
     },
     "Fragmento2":{
         "id": "1.100.16",
         "qualidade": 0,
         "pool": "chefe",
-        "item": "Mais perto da saida",
+        "description_item": "Mais perto da saida",
         "effect": ["chave"]
     },
     "Fragmento3":{
         "id": "1.100.17",
         "qualidade": 0,
         "pool": "chefe",
-        "item": "Mais perto da saida",
+        "description_item": "Mais perto da saida",
         "effect": ["chave"]
     }
 }

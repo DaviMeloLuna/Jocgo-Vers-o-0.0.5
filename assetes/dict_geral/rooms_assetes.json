@@ -42,7 +42,8 @@
     },
     "sala_chefe":{
         "tipo": "chefe",
-        "inimigo": [10, 7]
+        "inimigo": [10, 7],
+        "pedestal": [10, 7]
     },
     "sala_chefe_final":{
         "tipo": "chefe final",

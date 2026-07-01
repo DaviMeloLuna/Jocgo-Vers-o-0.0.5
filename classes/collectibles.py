@@ -90,7 +90,7 @@ class ItemPassivo(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self, self.group)
 
         self.x = x * TILESIZE
-        self.y = y * TILESIZE
+        self.y = y * TILESIZE - TILESIZE // 2
         self.width = TILESIZE
         self.height = TILESIZE
 

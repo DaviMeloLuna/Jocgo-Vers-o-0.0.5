@@ -65,7 +65,7 @@ class MulaSemCabeca(pygame.sprite.Sprite):  # classe para a mula sem cabeça
         self.speed = 2
         self.hp = 20.0
 
-        self.cooldown_tiro = 0
+        self.cooldown_tiro = FPS
 
     # a mula é um inimigo para testes
     def take_damage(self, damage):
@@ -448,6 +448,6 @@ class CacadorHead(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
     def update(self):
-        self.rect.centerx = self.player.rect.centerx
+        self.rect.centerx = self.cacador.rect.centerx
 
-        self.rect.centery = self.player.rect.centery - TILESIZE
+        self.rect.centery = self.cacador.rect.centery - TILESIZE

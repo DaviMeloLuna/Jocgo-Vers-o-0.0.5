@@ -104,12 +104,13 @@ class Game:
             "frequencia": 0.0,
             "speed": 1.0,
             "multi_spd": 1.0,
-            "qtd_proj": 1,
             "homming": False,
             "pierce": False
         }
 
         self.player = Player(self, 10, 7, self.player_status)
+
+        self.fragmentos_disponives = ["Fragmento1", "Fragmento2", "Fragmento3"]
 
         # Define quantas salas quer no andar
         self.gerador = MapGenerator(16, self)
@@ -169,19 +170,23 @@ class Game:
                 if len(self.enemies) == 0:
                     self.sala_atual.sala_limpa = True
 
-                # Bloco da recompensa
-                if self.sala_atual.tipo == 'chefe':
-                    # Sorteia um dos fragmentos
-                    fragmentos = ["Fragmento1", "Fragmento2", "Fragmento3"]
-                    nome_frag = choices(fragmentos, k=1)[0]
-                    dados_frag = self.banco_dados[nome_frag]
+                    # Bloco da recompensa
+                    if self.sala_atual.tipo == 'chefe':
+                        # Sorteia um dos fragmentos
+                        if len(self.fragmentos_disponives) > 0:
+                            nome_frag = self.fragmentos_disponives.pop(0)
+                        else:
+                            nome_frag = None
 
-                    self.sala_atual.item_nome = nome_frag
-                    self.sala_atual.item_dados = dados_frag
+                        if nome_frag:
+                            dados_frag = self.banco_dados[nome_frag]
 
-                    Pedestal(self, 10, 7)
-                    ItemPassivo(self, 10, 7, nome_frag,
-                                dados_frag, self.sala_atual)
+                            self.sala_atual.item_nome = nome_frag
+                            self.sala_atual.item_dados = dados_frag
+
+                            Pedestal(self, 10, 7)
+                            ItemPassivo(self, 10, 7, nome_frag,
+                                        dados_frag, self.sala_atual)
 
         if self.espera_porta > 0:
             self.espera_porta -= 1
@@ -209,9 +214,6 @@ class Game:
             self.uptade()
             self.draw()
         self.runnning = False
-
-    def intro_screen(self):
-        pass
 
     def game_over(self):
         if self.resultado == "PAUSA_MENU":
@@ -372,12 +374,6 @@ class Game:
             self.playing = False
             return
 
-        # Derrotou por escapar sem derrotar o caçador
-        if self.player.chaves >= self.max_chaves and not self.cacador_derrotado:
-            self.resultado = "FUGIU"
-            self.playing = False
-            return
-
     def check_door_collisions(self):
         # Impede do jogador de sair até derrotar o chefe
         if getattr(self, 'em_batalha_final', False):
@@ -422,15 +418,13 @@ class Game:
         hit = pygame.sprite.spritecollide(self.player, self.alcapao, False)
 
         if hit and not self.cacador_derrotado:
-            self.estado = "FUGIU"
+            self.resultado = "FUGIU"
             self.playing = False
-            self.runnning = False
             return
 
         elif hit and self.cacador_derrotado:
-            self.estado = "VITORIA"
+            self.resultado = "VITORIA"
             self.playing = False
-            self.runnning = False
             return
 
 
