@@ -36,7 +36,7 @@
         "player": [10, 7]
     },
     "sala_tesouro1":{
-        "tipo": "tessouro",
+        "tipo": "tesouro",
         "pedestal": [10, 7]
     },
     "sala_chefe":{

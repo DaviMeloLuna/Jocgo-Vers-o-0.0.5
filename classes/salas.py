@@ -27,7 +27,7 @@ class RoomNode:
         self.foi_visitada = False
         self.sala_limpa = False
 
-        self.tipo = 'normal'  # Pode ser: 'normal', 'chefe', 'tesouro'
+        self.tipo = 'normal'  # Pode ser: 'normal', 'chefe', 'tesouro', 'inicial'
 
         self.room_asset_id = "sala"
 
@@ -232,10 +232,10 @@ class MapGenerator:
             pos = dados_sala["pedestal"]  # Formato [10, 7] do JSON
             Pedestal(self.game, pos[0], pos[1])
 
-            if room_node.tipo == "tesouro" and not room_node.item_coletado:
+            if room_node.tipo == 'tesouro' and not room_node.item_coletado:
                 # Sorteia o item apenas uma vez que entrar
                 if room_node.item_nome is None:
-                    item_sorteado = self.game.sortear_item("tesouro")
+                    item_sorteado = self.game.sortear_item('tesouro')
                     if item_sorteado:
                         room_node.item_nome, room_node.item_dados = item_sorteado[0]
 
