@@ -489,7 +489,7 @@ class Inventario:
             elif atributo == "alcance":
                 self.player.status["alcance"] += alteracao
 
-            elif atributo == "health":
+            elif atributo == "hp":
                 self.player.status["hp_max"] += int(alteracao)
 
                 # Verifica se cura totalmente (caso do doce_leite / churrasco)

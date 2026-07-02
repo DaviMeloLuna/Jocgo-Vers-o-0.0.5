@@ -97,7 +97,7 @@ class Game:
         self.player_status = {
             "hp_max": 30,
             "vida_extra": 0,
-            "dano": 3.5,
+            "dano": 500.0,
             "multi_dmg": 1.0,
             "alcance": 8.5,
             "atq_speed": 1.0,

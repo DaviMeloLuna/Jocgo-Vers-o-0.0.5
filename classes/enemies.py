@@ -284,6 +284,8 @@ class Cacador(pygame.sprite.Sprite):
 
         pygame.sprite.Sprite.__init__(self, self.group)
 
+        self.facing = "face_baixo"
+
         # Objeto Pai
         self.image = pygame.Surface((TILESIZE, TILESIZE))
         self.image.fill((5, 52, 246))  # Azul Custumizado
@@ -333,11 +335,15 @@ class Cacador(pygame.sprite.Sprite):
                     else:
                         self.rect.x += self.speed_mov
 
+                    self.facing = "face_direita"
+
                 elif self.rect.centerx > player.rect.centerx:
                     if self.irritado:
                         self.rect.x -= self.speed_mov * 1.2
                     else:
                         self.rect.x -= self.speed_mov
+
+                    self.facing = "face_esquerda"
 
                 # mov vertical do chefe final
                 if self.rect.centery < player.rect.centery:
@@ -346,11 +352,15 @@ class Cacador(pygame.sprite.Sprite):
                     else:
                         self.rect.y += self.speed_mov
 
+                    self.facing = "face_baixo"
+
                 elif self.rect.centery > player.rect.centery:
                     if self.irritado:
                         self.rect.y -= self.speed_mov * 1.2
                     else:
                         self.rect.y -= self.speed_mov
+
+                    self.facing = "face_cima"
             else:
                 self.estado = "ATACAR"
 
@@ -429,9 +439,10 @@ class Projetil_arma(pygame.sprite.Sprite):
 
 
 class CacadorHead(pygame.sprite.Sprite):
-    def __init__(self, game, cacador):
+    def __init__(self, game, cacador, facing):
         self.game = game
         self.cacador = cacador
+        self.cabeça_posicao = facing
 
         self._layer = PLAYER_HEAD_LAYER
         self.group = self.game.all_sprites

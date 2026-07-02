@@ -27,6 +27,8 @@ class RoomNode:
         self.foi_visitada = False
         self.sala_limpa = False
 
+        self.chefe_spaw = False
+
         self.tipo = 'normal'  # Pode ser: 'normal', 'chefe', 'tesouro', 'inicial'
 
         self.room_asset_id = "sala"
@@ -299,10 +301,11 @@ class MapGenerator:
                     inimigo_intanciado.hp = inimigo_intanciado.hp * 4
 
         # Geração do caçador e inicio da batalha final
-        if room_node.tipo == 'chefe final' and not room_node.sala_limpa:
+        if room_node.tipo == 'chefe final':
             # Verifica os fragmentos da chave
-            if self.game.player.chaves >= self.game.max_chaves:
+            if (self.game.player.chaves >= self.game.max_chaves and not room_node.chefe_spaw and not self.game.cacador_derrotado):
                 Cacador(self.game, 10, 7)
+                self.chefe_spaw = True
                 self.game.em_batalha_final = True  # Trava as portas
 
 
@@ -335,7 +338,7 @@ class Minimap:
             self.spritesheet.subsurface(pygame.Rect(16, 16, 16, 16)), (16, 16))
 
         # Posição central de renderização do mini mapa na tela (Canto superior direito)
-        self.centro_hud_x = 580
+        self.centro_hud_x = 80
         self.centro_hud_y = 60
 
         self.tamanho_sala = 16
