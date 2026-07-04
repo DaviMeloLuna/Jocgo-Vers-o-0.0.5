@@ -6,7 +6,7 @@ import os
 from classes.config import *
 from classes.collectibles import *
 
-from classes.enemies import MulaSemCabeca, Iara, Curupira, Cacador
+from classes.enemies import PerseguidorA, Iara, Perseguidor, Cacador
 
 diretorio_atual = os.path.dirname(__file__)
 
@@ -294,7 +294,8 @@ class MapGenerator:
                 inimigo_pos = [inimigo_pos]
 
             for pos in inimigo_pos:
-                classe_inimigo = random.choice([MulaSemCabeca, Iara, Curupira])
+                classe_inimigo = random.choice(
+                    [PerseguidorA, Iara, Perseguidor])
                 inimigo_intanciado = classe_inimigo(self.game, pos[0], pos[1])
 
                 if room_node.tipo == 'chefe':
@@ -416,9 +417,9 @@ class Wall(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
         self.game = game
         self._layer = PLAYER_LAYER
-        self.groups = (self.game.all_sprites, self.game.walls)
+        self.group = (self.game.all_sprites, self.game.walls)
 
-        pygame.sprite.Sprite.__init__(self, self.groups)
+        pygame.sprite.Sprite.__init__(self, self.group)
 
         self.x = x * TILESIZE
         self.y = y * TILESIZE

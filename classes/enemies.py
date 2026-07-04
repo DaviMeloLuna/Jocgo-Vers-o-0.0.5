@@ -4,7 +4,7 @@ import math
 from classes.config import *
 
 
-class BolaDeFogo(pygame.sprite.Sprite):  # classe para os projeteis da mula sem cabeça
+class Projetil(pygame.sprite.Sprite):  # classe para os projeteis
     def __init__(self, game, x, y, dx, dy):
         self.game = game
 
@@ -18,16 +18,17 @@ class BolaDeFogo(pygame.sprite.Sprite):  # classe para os projeteis da mula sem 
         self.image.fill((255, 120, 0))
 
         self.rect = self.image.get_rect()
-        self.rect.centerx = x  # onde a bola de fogo nasce
+
+        # onde a bola de fogo nasce
+        self.rect.centerx = x
         self.rect.centery = y
 
-        self.dx = dx  # direção do projétil, normalizada
+        self.dx = dx
         self.dy = dy
 
-        self.speed = 5  # coloquei a velocidade 5, mas pode ser ajustada para ficar melhor
+        self.speed = 5
 
     def update(self):
-
         self.rect.x += self.dx * self.speed
         self.rect.y += self.dy * self.speed
 
@@ -39,10 +40,9 @@ class BolaDeFogo(pygame.sprite.Sprite):  # classe para os projeteis da mula sem 
         if pygame.sprite.spritecollide(self, self.game.walls, False):
             self.kill()
 
-# Inimigo perseguidor
 
-
-class MulaSemCabeca(pygame.sprite.Sprite):  # classe para a mula sem cabeça
+# Inimigo perseguidor e atirador
+class PerseguidorA(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
         self.game = game
 
@@ -60,9 +60,12 @@ class MulaSemCabeca(pygame.sprite.Sprite):  # classe para a mula sem cabeça
         self.rect.x = x * TILESIZE
         self.rect.y = y * TILESIZE
 
+        self.pos_x = float(self.rect.x)
+        self.pos_y = float(self.rect.y)
+
         self.hitbox = self.rect.copy()
 
-        self.speed = 2
+        self.speed = 1.5
         self.hp = 20.0
 
         self.cooldown_tiro = FPS
@@ -76,29 +79,54 @@ class MulaSemCabeca(pygame.sprite.Sprite):  # classe para a mula sem cabeça
     def update(self):
         player = self.game.player
 
+        if self.rect.colliderect(self.game.player.rect):
+            self.game.player.hp = max(
+                0, self.game.player.hp - 5)
+
         if player is None:
             return
 
-        # diferença de posições entre a mula sem cabeça e o jogador
+        # Melhoria de movimentação
         dx = player.rect.centerx - self.rect.centerx
-        dy = player.rect.centery - self.rect.centery
+        dy = player.rect.centery - self.rect.centery - 8
 
+        # Normalização do vetor direção
         distancia = math.sqrt(dx**2 + dy**2)
 
-        # Só persegue se estiver longe
-        if distancia > 120:
-            # mov horizontal
-            if self.rect.centerx < player.rect.centerx:
-                self.rect.x += self.speed
+        if distancia != 0:
+            dx /= distancia
+            dy /= distancia
 
-            elif self.rect.centerx > player.rect.centerx:
-                self.rect.x -= self.speed
-            # mov vertical
-            if self.rect.centery < player.rect.centery:
-                self.rect.y += self.speed
+            # Implementação de colisões
+            self.pos_x += dx * self.speed
+            self.rect.x = int(self.pos_x)
 
-            elif self.rect.centery > player.rect.centery:
-                self.rect.y -= self.speed
+            obstaculo = [self.game.walls, self.game.holes, self.game.blocks]
+
+            for grupo in obstaculo:
+                colisao = pygame.sprite.spritecollide(self, grupo, False)
+
+                for obstaculo in colisao:
+                    if dx > 0:  # Colisão a direita
+                        self.rect.right = obstaculo.rect.left
+                    elif dx < 0:
+                        self.rect.left = obstaculo.rect.right
+
+                    self.pos_x = self.rect.x
+
+            self.pos_y += dy * self.speed
+            self.rect.y = int(self.pos_y)
+
+            for grupo in obstaculo:
+                colisao = pygame.sprite.spritecollide(self, grupo, False)
+
+                for obstaculo in colisao:
+                    if dy > 0:
+                        self.rect.bottom = obstaculo.rect.top
+                    elif dy < 0:
+                        self.rect.top = obstaculo.rect.bottom
+
+                    self.pos_y = self.rect.y
 
         self.hitbox = self.rect.copy()
 
@@ -106,72 +134,22 @@ class MulaSemCabeca(pygame.sprite.Sprite):  # classe para a mula sem cabeça
             self.cooldown_tiro -= 1
 
         if self.cooldown_tiro == 0:
-
             dx = player.rect.centerx - self.rect.centerx
             dy = player.rect.centery - self.rect.centery
 
             distancia = math.sqrt(dx**2 + dy**2)
 
-            # só atira a depender da distancia do jogador, para não ficar atirando a todo momento
-            if distancia > 0 and distancia < 250:
+            dx /= distancia  # normalização do vetor direção
+            dy /= distancia
 
-                dx /= distancia  # normalização do vetor direção
-                dy /= distancia
+            Projetil(
+                self.game, self.rect.centerx, self.rect.centery, dx, dy)
 
-                BolaDeFogo(
-                    self.game, self.rect.centerx, self.rect.centery, dx, dy)
-
-                self.cooldown_tiro = 2 * FPS  # espera um tempo de 2 segundos antes de atirar novamente, limitando a quantidade de projéteis na tela e dando uma chance para o jogador se esquivar
+            # espera um tempo de 2 segundos antes de atirar novamente
+            self.cooldown_tiro = 2 * FPS
 
 
-# Criando a Iara:
-class Poder(pygame.sprite.Sprite):
-    def __init__(self, game, x, y):
-        self.game = game
-
-        # Ajeitar a imagem do ataque
-        self._layer = PROJ_LAYER
-        self.group = self.game.all_sprites
-
-        pygame.sprite.Sprite.__init__(self, self.group)
-
-        self.image = pygame.Surface((16, 16))
-        self.image.fill((255, 0, 0))
-
-        self.rect = self.image.get_rect()
-        self.rect.centerx = x
-        self.rect.centery = y
-
-        # Ajeitar as distancias para ficar proporcional o quanto anda
-        player = self.game.player
-        distancia = ((self.rect.centerx - player.rect.centerx) **
-                     2 + (self.rect.centery - player.rect.centery)**2)**0.5
-        if distancia == 0:
-            self.dx = 0
-            self.dy = 0
-        else:
-            self.dx = (player.rect.centerx - self.rect.centerx)/distancia
-            self.dy = (player.rect.centery - self.rect.centery)/distancia
-
-        # Uma velocidade qualquer, podemos mudar depois qualquer coisa
-        self.speed = 7
-
-    def update(self):
-        # Ele anda um pouco dependendo da velocidade
-        self.rect.centerx += self.dx * self.speed
-        self.rect.centery += self.dy * self.speed
-
-        # Verifica se houve colisão ou com o jogador(para diminuir o tempo) ou com a parede (para desaparecer)
-        if self.rect.colliderect(self.game.player.rect):
-            # Diminui a princípio em 10 segundos, mas a gente pode mudar
-            self.game.player.tempo -= 10
-            self.kill()
-
-        if pygame.sprite.spritecollide(self, self.game.walls, False):
-            self.kill()
-
-
-# Inimigo
+# Inimigo Estático
 class Iara(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
         self.game = game
@@ -192,8 +170,7 @@ class Iara(pygame.sprite.Sprite):
         self.rect.x = self.x
         self.rect.y = self.y
 
-        # Começamos com zero para poder atacar logo
-        self.cooldown_tiro = 0
+        self.cooldown_tiro = FPS
         self.hp = 30.0
 
         self.hitbox = self.rect.copy()
@@ -208,19 +185,26 @@ class Iara(pygame.sprite.Sprite):
         player = self.game.player
 
         # Calculando a distância para ajeitar o alcance:
-        distancia = ((self.rect.x - player.rect.x) **
-                     2 + (self.rect.y - player.rect.y)**2)**0.5
+        distancia = math.sqrt((self.rect.x - player.rect.x) **
+                              2 + (self.rect.y - player.rect.y)**2)
 
-        # Primeiro vamos verificar se o jogador tá perto o suficiente
-        if distancia < 128:  # Chutei um número qualquer para testar
-            if self.cooldown_tiro == 0:  # para esperar um pouco antes de atacar
-                Poder(self.game, self.rect.centerx, self.rect.centery)
-                self.cooldown_tiro = 60  # Botei 1 segundo, mas podemos trocar depois
-        if self.cooldown_tiro > 0:
-            self.cooldown_tiro -= 1
+        if self.cooldown_tiro == 0:
+            dx = player.rect.centerx - self.rect.centerx
+            dy = player.rect.centery - self.rect.centery - 8
+
+            distancia = math.sqrt(dx**2 + dy**2)
+
+            if distancia != 0:
+                dx /= distancia
+                dy /= distancia
+
+            Projetil(
+                self.game, self.rect.centerx, self.rect.centery, dx, dy)
+
+            self.cooldown_tiro = 2 * FPS
 
 
-class Curupira(pygame.sprite.Sprite):
+class Perseguidor(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
         self.game = game
         self._layer = PLAYER_LAYER
@@ -236,6 +220,9 @@ class Curupira(pygame.sprite.Sprite):
         self.rect.x = x * TILESIZE
         self.rect.y = y * TILESIZE
 
+        self.pos_x = float(self.rect.x)
+        self.pos_y = float(self.rect.y)
+
         self.hitbox = self.rect.copy()
 
         self.speed = 1.5
@@ -250,32 +237,64 @@ class Curupira(pygame.sprite.Sprite):
     def update(self):
         # saber se o jogador encostou no curupira
         if self.rect.colliderect(self.game.player.rect):
-            # aplica o efeito de atordoamento no jogador
-            self.game.player.aplicar_atordoamento()
-            self.kill()  # o curupira desaparece apos aplicar o efeito
+            self.game.player.hp = max(
+                0, self.game.player.hp - 5)
 
         player = self.game.player
 
         if player is None:
             return
 
-        # Irá perseguir o player, independentemente da distância do player
-        # mov horizontal
-        if self.rect.centerx < player.rect.centerx:
-            self.rect.x += self.speed
+        # Melhoria de movimentação
+        dx = player.rect.centerx - self.rect.centerx
+        dy = player.rect.centery - self.rect.centery - 8
 
-        elif self.rect.centerx > player.rect.centerx:
-            self.rect.x -= self.speed
-        # mov vertical
-        if self.rect.centery < player.rect.centery:
-            self.rect.y += self.speed
+        # Normalização do vetor direção
+        distancia = math.sqrt(dx**2 + dy**2)
 
-        elif self.rect.centery > player.rect.centery:
-            self.rect.y -= self.speed
+        if distancia != 0:
+            dx /= distancia
+            dy /= distancia
+
+            self.pos_x += dx * self.speed
+
+            self.rect.x = int(self.pos_x)
+
+            obstaculo = [self.game.walls, self.game.holes, self.game.blocks]
+
+            for grupo in obstaculo:
+                colisao = pygame.sprite.spritecollide(self, grupo, False)
+
+                for obstaculo in colisao:
+                    if dx > 0:  # Colisão a direita
+                        self.rect.right = obstaculo.rect.left
+                    elif dx < 0:
+                        self.rect.left = obstaculo.rect.right
+
+                    self.pos_x = self.rect.x
+
+            self.pos_y += dy * self.speed
+
+            self.rect.y = int(self.pos_y)
+
+            for grupo in obstaculo:
+                colisao = pygame.sprite.spritecollide(self, grupo, False)
+
+                for obstaculo in colisao:
+                    if dy > 0:
+                        self.rect.bottom = obstaculo.rect.top
+                    elif dy < 0:
+                        self.rect.top = obstaculo.rect.bottom
+
+                    self.rect.y = self.rect.y
+
+        self.rect.x = int(self.pos_x)
+        self.rect.y = int(self.pos_y)
 
         self.hitbox = self.rect.copy()
 
 
+# Chefe final
 class Cacador(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
         self.game = game
@@ -292,8 +311,11 @@ class Cacador(pygame.sprite.Sprite):
 
         self.rect = self.image.get_rect()
 
-        self.rect.x = x * TILESIZE * 2
-        self.rect.y = y * TILESIZE * 2
+        self.rect.x = x * TILESIZE * 2.5
+        self.rect.y = y * TILESIZE * 2.5
+
+        self.pos_x = float(self.rect.x)
+        self.pos_y = float(self.rect.y)
 
         self.hitbox = self.rect.copy()
 
@@ -304,63 +326,65 @@ class Cacador(pygame.sprite.Sprite):
 
         self.cooldown_tiro = 5.0 * FPS  # Tempo para o jogador perceber o chefão
         self.estado = "NEUTRO"  # Formas do chefão: NEUTRO, PERSEGUINDO, ATACAR
-        self.irritado = False
+
+        self.irritado = False  # Mudança de fase
 
     def take_damage(self, damage):
         self.hp -= damage
 
         if self.hp <= 0:
-            self.kill()
             self.game.cacador_derrotado = True
+            self.kill()
+
         elif self.hp > 0 and self.hp <= 125.0:
             self.irritado = True
 
     def update(self):
         player = self.game.player
 
+        vel = self.speed_mov * (1.2 if self.self.irritado else 1)
+
         if player is None:
             return
 
         dx = player.rect.centerx - self.rect.centerx
-        dy = player.rect.centery - self.rect.centery
+        dy = player.rect.centery - self.rect.centery - 8
 
         distancia = math.sqrt(dx**2 + dy**2)
 
+        # Normalização de vetor
+        if distancia != 0:
+            dx /= distancia
+            dy /= distancia
+
         if self.estado == "PERSEGUINDO":
             if distancia >= 128:
-                # mov horizontal do chefe final
-                if self.rect.centerx < player.rect.centerx:
-                    if self.irritado:
-                        self.rect.x += self.speed_mov * 1.2
-                    else:
-                        self.rect.x += self.speed_mov
+                # Melhoria de movimentação 2.0
+                obstaculo = [self.game.walls,
+                             self.game.holes, self.game.blocks]
 
-                    self.facing = "face_direita"
+                self.rect.x += dx * vel
 
-                elif self.rect.centerx > player.rect.centerx:
-                    if self.irritado:
-                        self.rect.x -= self.speed_mov * 1.2
-                    else:
-                        self.rect.x -= self.speed_mov
+                for groupo in obstaculo:
+                    colisao = pygame.sprite.spritecollide(
+                        self, groupo, False)
+                    for obstaculo in colisao:
+                        if dx > 0:
+                            self.rect.right = self.obstaculo.rect.left
+                        elif dx < 0:
+                            self.rect.left = self.obstaculo.rect.right
 
-                    self.facing = "face_esquerda"
+                self.rect.y += dy * vel
 
-                # mov vertical do chefe final
-                if self.rect.centery < player.rect.centery:
-                    if self.irritado:
-                        self.rect.y += self.speed_mov * 1.2
-                    else:
-                        self.rect.y += self.speed_mov
+                for groupo in obstaculo:
+                    colisao = pygame.sprite.spritecollide(
+                        self, groupo, False)
+                    for obstaculo in colisao:
+                        if dy > 0:
+                            self.rect.bottom = self.obstaculo.rect.top
+                        elif dy < 0:
+                            self.rect.top = self.obstaculo.rect.bottom
 
-                    self.facing = "face_baixo"
-
-                elif self.rect.centery > player.rect.centery:
-                    if self.irritado:
-                        self.rect.y -= self.speed_mov * 1.2
-                    else:
-                        self.rect.y -= self.speed_mov
-
-                    self.facing = "face_cima"
             else:
                 self.estado = "ATACAR"
 
@@ -376,13 +400,13 @@ class Cacador(pygame.sprite.Sprite):
 
             # Intância dos projetéis
             for i in range(qtd_proj):
-                angulo_total = angulo_inicial + (1 * passo_angular)
+                angulo_total = angulo_inicial + (i * passo_angular)
 
                 # Conversão de angulo em vetor
                 dir_x = math.cos(angulo_total)
                 dir_y = math.sin(angulo_total)
 
-                Projetil_arma(self.game, self.rect.centerx,
+                ProjetilChefe(self.game, self.rect.centerx,
                               self.rect.centery, dir_x, dir_y)
 
             self.estado = "NEUTRO"
@@ -394,10 +418,47 @@ class Cacador(pygame.sprite.Sprite):
             else:
                 self.estado = "PERSEGUINDO"
 
+        if abs(dx) > abs(dy):
+            if dx > 0:
+                self.facing = "face_direita"
+            else:
+                self.facing = "face_esquerda"
+        else:
+            if dy > 0:
+                self.facing = "face_baixo"
+            else:
+                self.facing = "face_cima"
+
         self.hitbox = self.rect.copy()
 
 
-class Projetil_arma(pygame.sprite.Sprite):
+class CacadorHead(pygame.sprite.Sprite):
+    def __init__(self, game, cacador, facing):
+        self.game = game
+        self.cacador = cacador
+        self.cabeça_posicao = facing
+
+        self._layer = PLAYER_HEAD_LAYER
+        self.group = self.game.all_sprites
+
+        # Objeto filho
+        pygame.sprite.Sprite.__init__(self, self.group)
+
+        self.width = TILESIZE
+        self.height = TILESIZE
+
+        self.image = pygame.Surface([self.width, self.height])
+        self.image.fill(GREEN)
+
+        self.rect = self.image.get_rect()
+
+    def update(self):
+        self.rect.centerx = self.cacador.rect.centerx
+
+        self.rect.centery = self.cacador.rect.centery - TILESIZE
+
+
+class ProjetilChefe(pygame.sprite.Sprite):
     def __init__(self, game, chefe_x, chefe_y, dir_x, dir_y):
         self.game = game
         self._layer = PLAYER_LAYER
@@ -436,29 +497,3 @@ class Projetil_arma(pygame.sprite.Sprite):
 
         if pygame.sprite.spritecollide(self, self.game.walls, False):
             self.kill()
-
-
-class CacadorHead(pygame.sprite.Sprite):
-    def __init__(self, game, cacador, facing):
-        self.game = game
-        self.cacador = cacador
-        self.cabeça_posicao = facing
-
-        self._layer = PLAYER_HEAD_LAYER
-        self.group = self.game.all_sprites
-
-        # Objeto filho
-        pygame.sprite.Sprite.__init__(self, self.group)
-
-        self.width = TILESIZE
-        self.height = TILESIZE
-
-        self.image = pygame.Surface([self.width, self.height])
-        self.image.fill(GREEN)
-
-        self.rect = self.image.get_rect()
-
-    def update(self):
-        self.rect.centerx = self.cacador.rect.centerx
-
-        self.rect.centery = self.cacador.rect.centery - TILESIZE

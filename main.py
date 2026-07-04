@@ -1,5 +1,3 @@
-from turtle import pos
-
 import pygame
 import sys
 import json

@@ -92,35 +92,38 @@ class Player(pygame.sprite.Sprite):
             alcance = self.status['alcance']
 
             if keys[pygame.K_UP]:
-                Projectile(self.game, hx, hy, 'face_up',
-                           damage, speed_proj, alcance, pierce)
+                AtaqueJogador(self.game, hx, hy, 'face_up',
+                              damage, speed_proj, alcance, pierce)
                 shoot = True
             elif keys[pygame.K_DOWN]:
-                Projectile(self.game, hx, hy, 'face_down',
-                           damage, speed_proj, alcance, pierce)
+                AtaqueJogador(self.game, hx, hy, 'face_down',
+                              damage, speed_proj, alcance, pierce)
                 shoot = True
             elif keys[pygame.K_LEFT]:
-                Projectile(self.game, hx, hy, 'face_left',
-                           damage, speed_proj, alcance, pierce)
+                AtaqueJogador(self.game, hx, hy, 'face_left',
+                              damage, speed_proj, alcance, pierce)
                 shoot = True
             elif keys[pygame.K_RIGHT]:
-                Projectile(self.game, hx, hy, 'face_right',
-                           damage, speed_proj, alcance, pierce)
+                AtaqueJogador(self.game, hx, hy, 'face_right',
+                              damage, speed_proj, alcance, pierce)
                 shoot = True
 
             if shoot:
                 self.shoot_cooldown = round(self.shoot_cooldown_cal(), 1) + 1
 
     def shoot_cooldown_cal(self):
-        self.teto_freq = 2.307
+        teto_freq = 2.307
         frequencia = self.status['frequencia']
 
-        if frequencia > self.teto_freq:
+        if frequencia > teto_freq:
             return 7
-        elif frequencia <= self.teto_freq and frequencia >= 0:
+
+        elif frequencia <= teto_freq and frequencia >= 0:
             return 21 - 7 * (2.14 * frequencia) ** (1/2)
+
         elif frequencia < 0 and frequencia < -0.467:
             return 21 - 7 * (2.14 * frequencia) ** (1/2) - 7 * (frequencia)
+
         else:
             return 21 - 7 * (frequencia)
 
@@ -154,15 +157,6 @@ class Player(pygame.sprite.Sprite):
 
         self.x_change = 0
         self.y_change = 0
-
-    def aplicar_atordoamento(self):
-        if self.atordoado:  # se o jogador já estiver atordoado, não aplica o efeito novamente
-            return
-        self.atordoado = True  # jogador atordoado
-        # deixa a velocidade do jogador pela metade
-        self.status["multi_spd"] = 0.5
-        # o jogador fica atordoado por 5 segundos, depois volta a velocidade normal
-        self.tempo_atordoado = FPS * 5
 
     def collide_walls(self, direction):
         if direction == "x":
@@ -295,7 +289,7 @@ class PlayerHead(pygame.sprite.Sprite):
         self.rect.centery = self.player.rect.centery - (TILESIZE // 2)
 
 
-class Projectile(pygame.sprite.Sprite):
+class AtaqueJogador(pygame.sprite.Sprite):
     def __init__(self, game, x, y, facing, damage, speed_proj, alcance, pierce):
         self.game = game
         self._layer = PROJ_LAYER
