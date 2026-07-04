@@ -102,8 +102,13 @@ class Game:
             "frequencia": 0.0,
             "speed": 1.0,
             "multi_spd": 1.0,
-            "homming": False,
-            "pierce": False
+            "voo": False,
+            "homming": False,   # Telecinécia
+            "pierce": False,    # Perfuração de inimigos
+            "ghost": False,     # Perfuração de obstaculo
+            "veneno": False,    # Veneno no inimigo
+            "dest_proj": False,  # Projéteis destruem obstaculos
+            "dest_body": False  # O jogador destroe obstaculos
         }
 
         self.player = Player(self, 10, 7, self.player_status)
@@ -355,9 +360,12 @@ class Game:
 
     def verificar_game_over(self):
         # Derrota por vida
-        if self.player.hp <= 0:
+        if self.player.hp <= 0 and self.player.status["vida_extra"] == 0:
             self.resultado = "MORREU"
             self.playing = False
+            return
+        elif self.player.hp <= 0 and self.player.status["vida_extra"] > 0:
+            self.player.status["vida_extra"] -= 1
             return
 
         # Derrota por tempo

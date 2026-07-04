@@ -41,6 +41,9 @@ class Player(pygame.sprite.Sprite):
         self.status = status
 
         self.has_homming = self.status["homming"]
+        self.pesonhento = self.status["veneno"]
+        self.perf_inimigo = self.status["pierce"]
+        self.perf_obstaculo = self.status["ghost"]
 
         # Exemplo de quantidade máxima de vidas e de tempo de duração da "partida", pode ser modificado se decidirmos algo novo
         self.hp_max = self.status["hp_max"]
@@ -128,13 +131,6 @@ class Player(pygame.sprite.Sprite):
             return 21 - 7 * (frequencia)
 
     def update(self):
-        # Atualiza efeito do Curupira
-        if self.atordoado:
-            self.tempo_atordoado -= 1
-            if self.tempo_atordoado <= 0:
-                self.atordoado = False
-                self.status["multi_spd"] = 1
-
         self.moviment()
         self.attack()
 
@@ -144,103 +140,73 @@ class Player(pygame.sprite.Sprite):
             self.shoot_cooldown -= 1
 
         self.rect.x += self.x_change
-        self.collide_walls('x')
-        self.collide_blocks('x')
-        self.collide_holes('x')
-        self.collid_pedestal('x')
+        self.verificar_colisoes('x')
 
         self.rect.y += self.y_change
-        self.collide_walls('y')
-        self.collide_blocks('y')
-        self.collide_holes('y')
-        self.collid_pedestal('y')
+        self.verificar_colisoes('y')
 
         self.x_change = 0
         self.y_change = 0
 
-    def collide_walls(self, direction):
-        if direction == "x":
-            hits_wall = pygame.sprite.spritecollide(
-                self, self.game.walls, False)
+    def verificar_colisoes(self, direcao):
+        obstaculos = [
+            self.game.blocks,
+            self.game.pedestal
+        ]
 
-            if hits_wall:
+        for obstaculo in obstaculos:
+            hits = pygame.sprite.spritecollide(
+                self, obstaculo, self.status["dest_body"])
+
+            if hits:
+                # Movimentação horizontal
+                if direcao == 'x':
+                    if self.x_change > 0:
+                        self.rect.right = hits[0].rect.left
+                    elif self.x_change < 0:
+                        self.rect.left = hits[0].rect.right
+
+                # Movimentação vertical
+                elif direcao == 'y':
+                    if self.y_change > 0:
+                        self.rect.bottom = hits[0].rect.top
+                    elif self.y_change < 0:
+                        self.rect.top = hits[0].rect.bottom
+
+        hit_buraco = pygame.sprite.spritecollide(
+            self, self.game.holes, False)
+
+        if hit_buraco and not self.status["fly"]:
+            # Movimentação horizontal
+            if direcao == 'x':
                 if self.x_change > 0:
-                    self.rect.x = hits_wall[0].rect.left - self.rect.width
-                if self.x_change < 0:
-                    self.rect.x = hits_wall[0].rect.right
+                    self.rect.right = hits[0].rect.left
+                elif self.x_change < 0:
+                    self.rect.left = hits[0].rect.right
 
-        if direction == "y":
-            hits_wall = pygame.sprite.spritecollide(
-                self, self.game.walls, False)
-
-            if hits_wall:
+            # Movimentação vertical
+            elif direcao == 'y':
                 if self.y_change > 0:
-                    self.rect.y = hits_wall[0].rect.top - self.rect.height
-                if self.y_change < 0:
-                    self.rect.y = hits_wall[0].rect.bottom
+                    self.rect.bottom = hits[0].rect.top
+                elif self.y_change < 0:
+                    self.rect.top = hits[0].rect.bottom
 
-    def collide_blocks(self, direction):
-        if direction == "x":
-            hits_block = pygame.sprite.spritecollide(
-                self, self.game.blocks, False)
+        hit_parede = pygame.sprite.spritecollide(self, self.game.walls, False)
 
-            if hits_block:
+        if hit_parede:
+            # Movimentação horizontal
+            if direcao == 'x':
                 if self.x_change > 0:
-                    self.rect.x = hits_block[0].rect.left - self.rect.width
-                if self.x_change < 0:
-                    self.rect.x = hits_block[0].rect.right
+                    self.rect.right = hits[0].rect.left
+                elif self.x_change < 0:
+                    self.rect.left = hits[0].rect.right
 
-        if direction == "y":
-            hits_block = pygame.sprite.spritecollide(
-                self, self.game.blocks, False)
-
-            if hits_block:
+            # Movimentação vertical
+            elif direcao == 'y':
                 if self.y_change > 0:
-                    self.rect.y = hits_block[0].rect.top - self.rect.height
-                if self.y_change < 0:
-                    self.rect.y = hits_block[0].rect.bottom
-
-    def collide_holes(self, direction):
-        if direction == "x":
-            hits_hole = pygame.sprite.spritecollide(
-                self, self.game.holes, False)
-
-            if hits_hole:
-                if self.x_change > 0:
-                    self.rect.x = hits_hole[0].rect.left - self.rect.width
-                if self.x_change < 0:
-                    self.rect.x = hits_hole[0].rect.right
-
-        if direction == "y":
-            hits_hole = pygame.sprite.spritecollide(
-                self, self.game.holes, False)
-
-            if hits_hole:
-                if self.y_change > 0:
-                    self.rect.y = hits_hole[0].rect.top - self.rect.height
-                if self.y_change < 0:
-                    self.rect.y = hits_hole[0].rect.bottom
-
-    def collid_pedestal(self, direction):
-        if direction == "x":
-            hits_hole = pygame.sprite.spritecollide(
-                self, self.game.pedestal, False)
-
-            if hits_hole:
-                if self.x_change > 0:
-                    self.rect.x = hits_hole[0].rect.left - self.rect.width
-                if self.x_change < 0:
-                    self.rect.x = hits_hole[0].rect.right
-
-        if direction == "y":
-            hits_hole = pygame.sprite.spritecollide(
-                self, self.game.pedestal, False)
-
-            if hits_hole:
-                if self.y_change > 0:
-                    self.rect.y = hits_hole[0].rect.top - self.rect.height
-                if self.y_change < 0:
-                    self.rect.y = hits_hole[0].rect.bottom
+                    self.rect.bottom = hits[0].rect.top
+                elif self.y_change < 0:
+                    self.rect.top = hits[0].rect.bottom
 
     def coletar_consumiveis(self):
         hits = pygame.sprite.spritecollide(self, self.game.pickup, True)
@@ -290,7 +256,7 @@ class PlayerHead(pygame.sprite.Sprite):
 
 
 class AtaqueJogador(pygame.sprite.Sprite):
-    def __init__(self, game, x, y, facing, damage, speed_proj, alcance, pierce):
+    def __init__(self, game, x, y, facing, damage, speed_proj, alcance, pierce, destruicao, ghost):
         self.game = game
         self._layer = PROJ_LAYER
         self.group = self.game.all_sprites, self.game.projectiles
@@ -310,6 +276,8 @@ class AtaqueJogador(pygame.sprite.Sprite):
 
         self.facing = facing
         self.pierce = pierce
+        self.destruicao = destruicao
+        self.ghost = ghost
 
         self.damage = damage
         self.speed_proj = speed_proj
@@ -387,14 +355,24 @@ class AtaqueJogador(pygame.sprite.Sprite):
         if self.distance_traveled >= self.max_distance:
             self.kill()
 
-        if pygame.sprite.spritecollide(self, self.game.blocks, False):
-            self.kill()
+        if not self.destruicao:
+            if pygame.sprite.spritecollide(self, self.game.blocks, False):
+                self.kill()
 
-        if pygame.sprite.spritecollide(self, self.game.walls, False):
-            self.kill()
+            if pygame.sprite.spritecollide(self, self.game.walls, False):
+                self.kill()
 
-        if pygame.sprite.spritecollide(self, self.game.doors, False):
-            self.kill()
+            if pygame.sprite.spritecollide(self, self.game.doors, False):
+                self.kill()
+        else:
+            if pygame.sprite.spritecollide(self, self.game.blocks, True):
+                self.kill()
+
+            if pygame.sprite.spritecollide(self, self.game.walls, True):
+                self.kill()
+
+            if pygame.sprite.spritecollide(self, self.game.doors, True):
+                self.kill()
 
         hits_enemy = pygame.sprite.spritecollide(
             self, self.game.enemies, False)
@@ -403,6 +381,9 @@ class AtaqueJogador(pygame.sprite.Sprite):
             if self.rect.colliderect(hit.hitbox) and not self.pierce:
                 hit.take_damage(self.damage)
                 self.kill()
+                break
+            elif self.rect.colliderect(hit.hitbox) and not self.game.player.status["homming"]:
+                hit.take_damage(self.damage)
                 break
 
 
@@ -460,10 +441,10 @@ class Inventario:
             return
 
         # Interpretação de modificadores numéricos: [valor, "Up"/"Down", "atributo"]
-        if len(efeito) >= 3 and efeito[1] in ["Up", "Down"]:
-            # Se for "Up" é positivo, se for "Down" é negativo
+        if len(efeito) >= 3 and efeito[1] in ["+", "-"]:
+            # Se for "+" é positivo, se for "-" é negativo
             valor, operacao, atributo = efeito[0], efeito[1], efeito[2]
-            modificador = 1 if operacao == "Up" else -1
+            modificador = 1 if operacao == "+" else -1
             alteracao = valor * modificador
 
             if atributo == "speed":
@@ -478,13 +459,13 @@ class Inventario:
 
             elif atributo == "frequencia":
                 # Frequência menor = tiros mais rápidos (reduz o cooldown base)
-                self.status['frequencia'] += alteracao
+                self.player.status['frequencia'] += alteracao
 
             elif atributo == "alcance":
                 self.player.status["alcance"] += alteracao
 
             elif atributo == "hp":
-                self.player.status["hp_max"] += int(alteracao)
+                self.player.status["hp"] += int(alteracao)
 
                 # Verifica se cura totalmente (caso do doce_leite / churrasco)
                 if len(efeito) == 4 and efeito[3] == "full":
@@ -496,11 +477,17 @@ class Inventario:
                     if self.player.hp > self.player.status["hp_max"]:
                         self.player.hp = self.player.status["hp_max"]
 
-        # Interpretação de efeitos especiais
+            elif atributo == "hp_max":
+                self.player.status["hp_max"] += alteracao
+
+                # Interpretação de efeitos especiais
         else:
             if efeito[0] == "homming":
                 self.player.status["homming"] = True
+                self.player.has_hommig = True
             elif efeito[0] == "pierce":
                 self.player.status["pierce"] = True
             elif efeito[0] == "chave":
                 self.player.chaves += 1
+            elif efeito[0] == "vida_extra":
+                self.player.status["vida_extra"] += 1

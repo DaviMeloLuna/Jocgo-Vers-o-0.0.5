@@ -339,7 +339,7 @@ class Minimap:
             self.spritesheet.subsurface(pygame.Rect(16, 16, 16, 16)), (16, 16))
 
         # Posição central de renderização do mini mapa na tela (Canto superior direito)
-        self.centro_hud_x = 80
+        self.centro_hud_x = 580
         self.centro_hud_y = 60
 
         self.tamanho_sala = 16
@@ -393,9 +393,9 @@ class Pedestal(pygame.sprite.Sprite):
         self.has_item = True
 
         self._layer = DETAILS_LAYER
-        self.groups = (self.game.all_sprites, self.game.pedestal)
+        self.group = (self.game.all_sprites, self.game.pedestal)
 
-        pygame.sprite.Sprite.__init__(self, self.groups)
+        pygame.sprite.Sprite.__init__(self, self.group)
 
         self.x = x * TILESIZE
         self.y = y * TILESIZE
@@ -440,7 +440,7 @@ class Block(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
         self.game = game
         self._layer = PLAYER_LAYER
-        self.group = self.game.all_sprites, self.game.blocks
+        self.group = (self.game.all_sprites, self.game.blocks)
 
         pygame.sprite.Sprite.__init__(self, self.group)
 
@@ -463,7 +463,7 @@ class Hole(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
         self.game = game
         self._layer = PLAYER_LAYER
-        self.group = self.game.all_sprites, self.game.holes
+        self.group = (self.game.all_sprites, self.game.holes)
 
         pygame.sprite.Sprite.__init__(self, self.group)
 
@@ -486,7 +486,7 @@ class Door(pygame.sprite.Sprite):
     def __init__(self, game, x, y, direcao):
         self.game = game
         self._layer = DOOR_LAYER
-        self.group = self.game.all_sprites, self.game.doors
+        self.group = (self.game.all_sprites, self.game.doors)
 
         pygame.sprite.Sprite.__init__(self, self.group)
 
@@ -525,7 +525,7 @@ class Alcapao(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
         self.game = game
         self._layer = PLAYER_LAYER
-        self.group = self.game.all_sprites, self.game.alcapao
+        self.group = (self.game.all_sprites, self.game.alcapao)
 
         pygame.sprite.Sprite.__init__(self, self.group)
 

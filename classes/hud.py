@@ -19,8 +19,11 @@ class HUD:
         self.espaco_coracao = 4
         self.vida_por_coracao = 10
 
-        self.tamanho_icone_item = 28
+        self.tamanho_icone_item = 16
         self.espaco_icone_item = 4
+
+        self.max_colunas = 5
+        self.max_linhas = 8
 
     def draw(self, screen):
         player = self.game.player
@@ -185,11 +188,45 @@ class HUD:
 
             self._desenhar_icone_item(screen, rect_icone, nome, quantidade)
 
+            # Melhoria no HUD
+            largura_matriz = self.max_colunas * \
+                (self.tamanho_icone_item + self.espaco_icone_item)
+
+            x_inicial_matriz = WIDTH_TELA - self.margem - largura_matriz
+
+            coluna = 0
+            linha = 0
+
+            for nome, quantidade in reversed(list(contagem_itens.items())):
+                if linha >= self.max_linhas:
+                    break
+
+                x_icone = x_inicial_matriz + coluna * \
+                    (self.tamanho_icone_item + self.espaco_icone_item)
+                y_icone = y_icones + linha * \
+                    (self.tamanho_icone_item + self.espaco_icone_item)
+
+                rect_icone = pygame.Rect(
+                    x_icone, y_icone, self.tamanho_icone_item, self.tamanho_icone_item)
+                self._desenhar_icone_item(screen, rect_icone, nome, quantidade)
+
+                coluna += 1
+
+                if coluna >= self.max_colunas:
+                    coluna = 0
+                    linha += 1
+
     def _desenhar_icone_item(self, screen, rect_icone, nome, quantidade):
-        pygame.draw.rect(screen, CYAN, rect_icone)
-        pygame.draw.rect(screen, WHITE, rect_icone, 1)
+        # Reworke no desenhar icone
+        icone_surface = pygame.Surface(
+            (rect_icone.width, rect_icone.height), pygame.SRCALPHA)
+
+        icone_surface.fill((0, 255, 255, 100))
+
+        screen.blit(icone_surface, rect_icone.topleft)
 
         letra = nome[0].upper() if nome else '?'
+
         letra_render = self.fonte_letra_item.render(letra, True, BLACK)
         letra_rect = letra_render.get_rect(center=rect_icone.center)
         screen.blit(letra_render, letra_rect)
